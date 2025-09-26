@@ -1,13 +1,13 @@
 {
-  "name": "npm-package-navigator",
+  "name": "jymeng.npm-package-navigator",
   "displayName": "NPM Package Navigator",
   "description": "Navigate quickly to npm package resources directly from JavaScript and TypeScript projects.",
   "version": "0.1.0",
-  "publisher": "your-publisher-id",
+  "publisher": "jymeng",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-user/npm-package-navigator.git"
+    "url": "https://github.com/jeremymeng/npm-package-navigator.git"
   },
   "engines": {
     "vscode": "^1.83.0"
@@ -105,7 +105,7 @@
     "@typescript-eslint/parser": "^8.0.0",
     "@vscode/test-electron": "^2.3.0",
     "eslint": "^9.5.0",
-    "glob": "^10.3.10",
+    "glob": "^11.0.3",
     "globals": "^15.3.0",
     "mocha": "^10.2.0",
     "prettier": "^3.3.3",
