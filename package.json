@@ -1,0 +1,110 @@
+{
+  "name": "npm-package-navigator",
+  "displayName": "NPM Package Navigator",
+  "description": "Navigate quickly to npm package resources directly from JavaScript and TypeScript projects.",
+  "version": "0.1.0",
+  "publisher": "your-publisher-id",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-user/npm-package-navigator.git"
+  },
+  "engines": {
+    "vscode": "^1.83.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "npm",
+    "packages",
+    "navigation",
+    "javascript",
+    "typescript"
+  ],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescriptreact",
+    "onLanguage:json"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "npm-package-navigator.showPackageMenu",
+        "title": "Package Navigator: Open Menu"
+      },
+      {
+        "command": "npm-package-navigator.openPackageDirectory",
+        "title": "Package Navigator: Open Package Directory"
+      },
+      {
+        "command": "npm-package-navigator.openPackageJson",
+        "title": "Package Navigator: Open package.json"
+      },
+      {
+        "command": "npm-package-navigator.openReadme",
+        "title": "Package Navigator: Open README"
+      },
+      {
+        "command": "npm-package-navigator.openRepository",
+        "title": "Package Navigator: Open Repository"
+      },
+      {
+        "command": "npm-package-navigator.openHomepage",
+        "title": "Package Navigator: Open Homepage"
+      },
+      {
+        "command": "npm-package-navigator.openIssues",
+        "title": "Package Navigator: Open Issues"
+      },
+      {
+        "command": "npm-package-navigator.openUnpkg",
+        "title": "Package Navigator: Open on unpkg.com"
+      },
+      {
+        "command": "npm-package-navigator.openJsDelivr",
+        "title": "Package Navigator: Open on jsDelivr"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "npm-package-navigator.showPackageMenu",
+          "group": "navigation@1",
+          "when": "editorTextFocus && (resourceExtname == .js || resourceExtname == .jsx || resourceExtname == .ts || resourceExtname == .tsx || resourceExtname == .mjs || resourceExtname == .cjs || resourceExtname == .json)"
+        }
+      ]
+    },
+    "codeLens": [
+      {
+        "language": "json",
+        "pattern": "**/package.json",
+        "command": "npm-package-navigator.showPackageMenu"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./ && tsc -p ./test",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "18.x",
+    "@types/vscode": "^1.83.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.4",
+    "@typescript-eslint/parser": "^6.7.4",
+    "@vscode/test-electron": "^2.3.0",
+    "eslint": "^8.49.0",
+    "glob": "^10.3.10",
+    "mocha": "^10.2.0",
+    "typescript": "^5.2.2"
+  }
+}

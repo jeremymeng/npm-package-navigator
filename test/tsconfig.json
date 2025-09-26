@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2020",
+  "outDir": "../out/test",
+  "lib": ["ES2020", "DOM"],
+  "rootDir": "../",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "strict": true,
+    "esModuleInterop": true,
+  "skipLibCheck": true,
+  "types": ["mocha", "node"]
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
+}

@@ -1,0 +1,9 @@
+out/test/
+node_modules/
+.vscode/
+.vscodeignore
+**/*.ts
+**/*.map
+**/*.test.js
+.eslintrc.json
+README.md

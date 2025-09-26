@@ -1,7 +1,7 @@
 ---
 description: "Generate a VS Code extension prompt"
-mode: "ask"
-model: "Claude Sonnet 4"
+mode: "agent"
+model: "GPT-5-Codex"
 ---
 Create a Visual Studio Code extension that supports these features for TypeScript and JavaScript codebases:
 
