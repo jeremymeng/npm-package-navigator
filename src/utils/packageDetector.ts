@@ -11,23 +11,18 @@ export class PackageDetector {
     document: vscode.TextDocument,
     position: vscode.Position,
   ): PackageMatch | undefined {
-    const lineText = document.lineAt(position.line).text;
-
-    const importMatch = this.extractFromImport(lineText, position);
-    if (importMatch) {
-      return importMatch;
-    }
-
     if (this.isPackageJson(document)) {
       return this.extractFromPackageJson(document, position);
     }
 
-    const word = document.getWordRangeAtPosition(position, /[@\w\-/.]+/);
-    if (word) {
-      const text = document.getText(word);
-      if (this.isLikelyPackageName(text)) {
-        return { name: this.normalizePackageSpecifier(text), range: word };
-      }
+    if (!this.isSupportedCodeDocument(document)) {
+      return undefined;
+    }
+
+    const lineText = document.lineAt(position.line).text;
+    const importMatch = this.extractFromImport(lineText, position);
+    if (importMatch) {
+      return importMatch;
     }
 
     return undefined;
@@ -168,6 +163,17 @@ export class PackageDetector {
 
   private isPackageJson(document: vscode.TextDocument): boolean {
     return document.fileName.endsWith("package.json");
+  }
+
+  private isSupportedCodeDocument(document: vscode.TextDocument): boolean {
+    const supportedLanguages = new Set([
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact",
+    ]);
+
+    return supportedLanguages.has(document.languageId);
   }
 
   private normalizePackageSpecifier(specifier: string): string {
