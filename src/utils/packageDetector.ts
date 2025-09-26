@@ -53,7 +53,7 @@ export class PackageDetector {
             }
 
             return matches;
-        } catch (error) {
+    } catch (_error) {
             return [];
         }
     }
@@ -122,7 +122,7 @@ export class PackageDetector {
                     return String(deps[packageName]);
                 }
             }
-        } catch (error) {
+    } catch (_error) {
             // ignore parse failures
         }
 

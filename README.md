@@ -42,6 +42,8 @@ npm run compile
 npm run lint
 ```
 
+The project uses ESLint 9 with a flat config defined in `eslint.config.mjs`.
+
 ### Test
 
 ```bash

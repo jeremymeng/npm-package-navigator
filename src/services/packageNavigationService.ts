@@ -33,7 +33,7 @@ export class PackageNavigationService {
                 repository: this.normalizeRepository(data.repository),
                 bugs: this.normalizeBugs(data.bugs)
             };
-        } catch (error) {
+    } catch (_error) {
             return {
                 name: packageName
             };
@@ -74,7 +74,7 @@ export class PackageNavigationService {
                 await fs.access(fullPath);
                 await vscode.window.showTextDocument(vscode.Uri.file(fullPath));
                 return;
-            } catch (error) {
+            } catch (_error) {
                 // try next candidate
             }
         }
@@ -137,7 +137,7 @@ export class PackageNavigationService {
         try {
             await fs.access(manifest);
             return manifest;
-        } catch (error) {
+    } catch (_error) {
             return undefined;
         }
     }
@@ -220,7 +220,7 @@ export class PackageNavigationService {
         try {
             const stat = await fs.stat(target);
             return stat.isDirectory();
-        } catch (error) {
+    } catch (_error) {
             return false;
         }
     }
@@ -244,7 +244,7 @@ export class PackageNavigationService {
                     return candidate;
                 }
             }
-        } catch (error) {
+    } catch (_error) {
             // ignore missing pnpm structure
         }
 
