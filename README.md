@@ -44,6 +44,14 @@ npm run lint
 
 The project uses ESLint 9 with a flat config defined in `eslint.config.mjs`.
 
+### Format
+
+```bash
+npm run format
+```
+
+Prettier formats project source and config files using the settings in `prettier.config.mjs`.
+
 ### Test
 
 ```bash
