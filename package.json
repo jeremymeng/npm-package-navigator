@@ -1,5 +1,5 @@
 {
-  "name": "jymeng.npm-package-navigator",
+  "name": "npm-package-navigator",
   "displayName": "NPM Package Navigator",
   "description": "Navigate quickly to npm package resources directly from JavaScript and TypeScript projects.",
   "version": "0.1.0",
@@ -93,7 +93,7 @@
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,cjs,json,md}\"",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/test/runTest.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.5.0",
