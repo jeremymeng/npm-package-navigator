@@ -10,6 +10,7 @@ Navigate to npm package resources directly from your JavaScript and TypeScript p
   - Package `package.json`
   - README (if available)
   - Repository, homepage, and issue tracker URLs
+  - npmjs package page (latest or specific version)
   - CDN pages on [unpkg.com](https://unpkg.com) and [jsDelivr](https://www.jsdelivr.com)
 - Hover tooltips with useful metadata and quick links.
 - CodeLens entries for dependencies in `package.json`.

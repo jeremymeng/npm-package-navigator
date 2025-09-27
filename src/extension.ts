@@ -68,6 +68,10 @@ export function activate(context: vscode.ExtensionContext) {
       handler: (match: PackageMatch) => navigationService.openIssues(match),
     },
     {
+      command: "npm-package-navigator.openNpm",
+      handler: (match: PackageMatch) => navigationService.openNpm(match),
+    },
+    {
       command: "npm-package-navigator.openUnpkg",
       handler: (match: PackageMatch) => navigationService.openUnpkg(match),
     },
@@ -150,6 +154,18 @@ async function showPackageNavigationMenu(match: PackageMatch): Promise<void> {
   }
 
   quickPickItems.push({
+    label: "$(link-external) npm (latest)",
+    description: `Open https://www.npmjs.com/package/${match.name}`,
+  });
+
+  if (version) {
+    quickPickItems.push({
+      label: "$(link-external) npm (version)",
+      description: `Open https://www.npmjs.com/package/${match.name}/v/${version}`,
+    });
+  }
+
+  quickPickItems.push({
     label: "$(cloud) unpkg (latest)",
     description: `Open https://unpkg.com/${match.name}/`,
   });
@@ -203,6 +219,17 @@ async function showPackageNavigationMenu(match: PackageMatch): Promise<void> {
       break;
     case "$(issue-opened) Issues":
       await vscode.commands.executeCommand("npm-package-navigator.openIssues", match);
+      break;
+    case "$(link-external) npm (latest)":
+      await vscode.commands.executeCommand("npm-package-navigator.openNpm", {
+        name: match.name,
+      });
+      break;
+    case "$(link-external) npm (version)":
+      await vscode.commands.executeCommand("npm-package-navigator.openNpm", {
+        name: match.name,
+        version,
+      });
       break;
     case "$(cloud) unpkg (latest)":
       await vscode.commands.executeCommand("npm-package-navigator.openUnpkg", {

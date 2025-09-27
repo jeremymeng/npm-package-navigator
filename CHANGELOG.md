@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.3] - 2025-09-26
+
+### Added
+- Navigation options for npmjs package pages (latest and specific version) from the package menu.
+
 ## [0.1.2] - 2025-09-26
 
 ### Added

@@ -10,7 +10,12 @@ Create a Visual Studio Code extension that supports these features for TypeScrip
   - its directory in `node_modules`
   - its `package.json` file
   - its readme file (if available)
+  - its npmjs page URL
+    - latest
+    - specified version
   - its repository URL (if available)
   - its homepage URL (if available)
   - its issue tracker URL (if available)
   - its URL on CDN services like `unpkg.com` or `jsdelivr.com`
+    - latest
+    - specified version

@@ -138,6 +138,14 @@ export class PackageNavigationService {
     await vscode.env.openExternal(vscode.Uri.parse(issuesUrl));
   }
 
+  async openNpm(match: PackageMatch): Promise<void> {
+    const normalizedVersion = this.normalizeVersionSpecifier(match.version);
+    const baseUrl = `https://www.npmjs.com/package/${match.name}`;
+    const url = normalizedVersion ? `${baseUrl}/v/${normalizedVersion}` : baseUrl;
+    this.logger.info(`Opening npm registry page`, { package: match.name, version: normalizedVersion });
+    await vscode.env.openExternal(vscode.Uri.parse(url));
+  }
+
   async openUnpkg(match: PackageMatch): Promise<void> {
     const normalizedVersion = this.normalizeVersionSpecifier(match.version);
     const versionSuffix = normalizedVersion ? `@${normalizedVersion}` : "";
