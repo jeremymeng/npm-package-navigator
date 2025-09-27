@@ -3,13 +3,19 @@ import { PackageDetector, PackageMatch } from "./utils/packageDetector";
 import { PackageNavigationService } from "./services/packageNavigationService";
 import { PackageHoverProvider } from "./providers/hoverProvider";
 import { PackageCodeLensProvider } from "./providers/codeLensProvider";
+import { Logger } from "./utils/logger";
 
 let navigationService: PackageNavigationService;
 let packageDetector: PackageDetector;
+let logger: Logger | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
+  const outputLogger = new Logger("NPM Package Navigator");
+  logger = outputLogger;
   packageDetector = new PackageDetector();
-  navigationService = new PackageNavigationService();
+  navigationService = new PackageNavigationService(outputLogger);
+
+  outputLogger.info("Extension activated");
 
   const hoverProvider = vscode.languages.registerHoverProvider(
     ["javascript", "javascriptreact", "typescript", "typescriptreact", "json"],
@@ -27,9 +33,11 @@ export function activate(context: vscode.ExtensionContext) {
       const match = await resolvePackageMatch(explicit);
       if (!match) {
         vscode.window.showInformationMessage("No package detected at the current cursor position.");
+        logger?.debug("Show menu command invoked without detectable package");
         return;
       }
 
+      logger?.info("Showing package navigation menu", { package: match.name, source: explicit ? "explicit" : "cursor" });
       await showPackageNavigationMenu(match);
     },
   );
@@ -37,50 +45,49 @@ export function activate(context: vscode.ExtensionContext) {
   const commands = [
     {
       command: "npm-package-navigator.openPackageDirectory",
-      handler: (match: PackageMatch | string) =>
-        navigationService.openPackageDirectory(normalizeMatch(match)),
+      handler: (match: PackageMatch) => navigationService.openPackageDirectory(match),
     },
     {
       command: "npm-package-navigator.openPackageJson",
-      handler: (match: PackageMatch | string) =>
-        navigationService.openPackageJson(normalizeMatch(match)),
+      handler: (match: PackageMatch) => navigationService.openPackageJson(match),
     },
     {
       command: "npm-package-navigator.openReadme",
-      handler: (match: PackageMatch | string) =>
-        navigationService.openReadme(normalizeMatch(match)),
+      handler: (match: PackageMatch) => navigationService.openReadme(match),
     },
     {
       command: "npm-package-navigator.openRepository",
-      handler: (match: PackageMatch | string) =>
-        navigationService.openRepository(normalizeMatch(match)),
+      handler: (match: PackageMatch) => navigationService.openRepository(match),
     },
     {
       command: "npm-package-navigator.openHomepage",
-      handler: (match: PackageMatch | string) =>
-        navigationService.openHomepage(normalizeMatch(match)),
+      handler: (match: PackageMatch) => navigationService.openHomepage(match),
     },
     {
       command: "npm-package-navigator.openIssues",
-      handler: (match: PackageMatch | string) =>
-        navigationService.openIssues(normalizeMatch(match)),
+      handler: (match: PackageMatch) => navigationService.openIssues(match),
     },
     {
       command: "npm-package-navigator.openUnpkg",
-      handler: (match: PackageMatch | string) => navigationService.openUnpkg(normalizeMatch(match)),
+      handler: (match: PackageMatch) => navigationService.openUnpkg(match),
     },
     {
       command: "npm-package-navigator.openJsDelivr",
-      handler: (match: PackageMatch | string) =>
-        navigationService.openJsDelivr(normalizeMatch(match)),
+      handler: (match: PackageMatch) => navigationService.openJsDelivr(match),
     },
-  ].map(({ command, handler }) => vscode.commands.registerCommand(command, handler));
+  ].map(({ command, handler }) =>
+    vscode.commands.registerCommand(command, (raw: PackageMatch | string) => {
+      const normalized = normalizeMatch(raw);
+      logger?.info(`Command ${command} invoked`, { package: normalized.name });
+      return handler(normalized);
+    }),
+  );
 
-  context.subscriptions.push(hoverProvider, codeLensProvider, showMenu, ...commands);
+  context.subscriptions.push(hoverProvider, codeLensProvider, showMenu, ...commands, outputLogger);
 }
 
 export function deactivate() {
-  // nothing to clean up
+  logger?.info("Extension deactivated");
 }
 
 async function resolvePackageMatch(
@@ -172,8 +179,11 @@ async function showPackageNavigationMenu(match: PackageMatch): Promise<void> {
   });
 
   if (!selection) {
+    logger?.debug("Package navigation menu dismissed", { package: match.name });
     return;
   }
+
+  logger?.info("Package navigation action selected", { package: match.name, action: selection.label });
 
   switch (selection.label) {
     case "$(folder-opened) Package directory":
@@ -222,6 +232,7 @@ async function showPackageNavigationMenu(match: PackageMatch): Promise<void> {
 }
 
 function normalizeMatch(match: PackageMatch | string): PackageMatch {
+  logger?.debug("Normalizing match", match);
   if (typeof match === "string") {
     return { name: match };
   }

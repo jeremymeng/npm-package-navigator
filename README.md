@@ -14,6 +14,7 @@ Navigate to npm package resources directly from your JavaScript and TypeScript p
 - Hover tooltips with useful metadata and quick links.
 - CodeLens entries for dependencies in `package.json`.
 - Context menu command and command palette entry for fast access.
+- Optional debug logging to the VS Code Output panel (`NPM Package Navigator`).
 
 ## Getting Started (Users)
 
@@ -57,6 +58,11 @@ Prettier formats project source and config files using the settings in `prettier
 ```bash
 npm test
 ```
+
+### Debug logging
+
+Set the `npmPackageNavigator.debugLogging` setting to `true` to emit verbose messages to the
+`NPM Package Navigator` channel in the VS Code Output panel.
 
 ## License
 

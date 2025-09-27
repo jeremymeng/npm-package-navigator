@@ -84,7 +84,17 @@
         "pattern": "**/package.json",
         "command": "npm-package-navigator.showPackageMenu"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "NPM Package Navigator",
+      "properties": {
+        "npmPackageNavigator.debugLogging": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable verbose debug logging in the Output panel."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
