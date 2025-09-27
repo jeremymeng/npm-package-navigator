@@ -260,29 +260,20 @@ export class PackageNavigationService {
     workspacePath: string,
     packageName: string,
   ): Promise<string | undefined> {
-    const pnpmRoot = path.join(workspacePath, "node_modules", ".pnpm");
-    try {
-      const entries = await fs.readdir(pnpmRoot, { withFileTypes: true });
-      for (const entry of entries) {
-        if (!entry.isDirectory()) {
-          continue;
-        }
+    const pnpmNodeModules = path.join(workspacePath, "node_modules", ".pnpm", "node_modules");
 
-        const entryName = entry.name;
-        if (!entryName.includes("node_modules")) {
-          continue;
-        }
+    const candidateSegments = packageName.startsWith("@")
+      ? packageName.split("/")
+      : [packageName];
 
-        const candidate = path.join(pnpmRoot, entryName, "node_modules", packageName);
-        if (await this.exists(candidate)) {
-          this.logger.debug(`Found package inside pnpm store`, { packageName, candidate });
-          return candidate;
-        }
-      }
-    } catch (_error) {
-      // ignore missing pnpm structure
+    const candidate = path.join(pnpmNodeModules, ...candidateSegments);
+
+    if (await this.exists(candidate)) {
+      this.logger.debug(`Found package inside pnpm store`, { packageName, candidate });
+      return candidate;
     }
 
+    this.logger.debug(`Package not found inside pnpm store`, { packageName });
     return undefined;
   }
 
