@@ -19,8 +19,7 @@ export class PackageDetector {
       return undefined;
     }
 
-    const lineText = document.lineAt(position.line).text;
-    const importMatch = this.extractFromImport(lineText, position);
+  const importMatch = this.extractFromImport(document, position);
     if (importMatch) {
       return importMatch;
     }
@@ -65,28 +64,34 @@ export class PackageDetector {
     return this.findRangeForDependency(document, packageName);
   }
 
-  private extractFromImport(line: string, position: vscode.Position): PackageMatch | undefined {
+  private extractFromImport(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+  ): PackageMatch | undefined {
     const patterns = [
-      /import\s+[^'"`]*?from\s+['"`]([^'"`]+)['"`]/g,
+      /import\s+[\s\S]*?from\s+['"`]([^'"`]+)['"`]/g,
       /import\s+['"`]([^'"`]+)['"`]/g,
       /require\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
       /import\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
     ];
 
+    const text = document.getText();
+    const cursorOffset = document.offsetAt(position);
+
     for (const regex of patterns) {
       regex.lastIndex = 0;
       let match: RegExpExecArray | null;
-      while ((match = regex.exec(line)) !== null) {
+      while ((match = regex.exec(text)) !== null) {
         const specifier = match[1];
-        const start = match.index + match[0].indexOf(specifier);
-        const end = start + specifier.length;
+        const specifierStart = match.index + match[0].indexOf(specifier);
+        const specifierEnd = specifierStart + specifier.length;
 
-        if (position.character >= start && position.character <= end) {
+        if (cursorOffset >= specifierStart && cursorOffset <= specifierEnd) {
           const normalized = this.normalizePackageSpecifier(specifier);
           if (normalized) {
             const range = new vscode.Range(
-              new vscode.Position(position.line, start),
-              new vscode.Position(position.line, end),
+              document.positionAt(specifierStart),
+              document.positionAt(specifierEnd),
             );
             return { name: normalized, range };
           }

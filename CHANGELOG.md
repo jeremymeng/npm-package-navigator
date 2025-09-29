@@ -5,6 +5,9 @@
 ### Added
 - Navigation options for npmjs package pages (latest and specific version) from the package menu.
 
+### Fixed
+- Detect package names when import or require expressions span multiple lines.
+
 ## [0.1.2] - 2025-09-26
 
 ### Added
