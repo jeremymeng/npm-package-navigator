@@ -2,7 +2,6 @@ import * as vscode from "vscode";
 import { PackageDetector, PackageMatch } from "./utils/packageDetector";
 import { PackageNavigationService } from "./services/packageNavigationService";
 import { PackageHoverProvider } from "./providers/hoverProvider";
-import { PackageCodeLensProvider } from "./providers/codeLensProvider";
 import { Logger } from "./utils/logger";
 
 let navigationService: PackageNavigationService;
@@ -20,11 +19,6 @@ export function activate(context: vscode.ExtensionContext) {
   const hoverProvider = vscode.languages.registerHoverProvider(
     ["javascript", "javascriptreact", "typescript", "typescriptreact", "json"],
     new PackageHoverProvider(packageDetector, navigationService),
-  );
-
-  const codeLensProvider = vscode.languages.registerCodeLensProvider(
-    { language: "json", pattern: "**/package.json" },
-    new PackageCodeLensProvider(packageDetector),
   );
 
   const showMenu = vscode.commands.registerCommand(
@@ -87,7 +81,7 @@ export function activate(context: vscode.ExtensionContext) {
     }),
   );
 
-  context.subscriptions.push(hoverProvider, codeLensProvider, showMenu, ...commands, outputLogger);
+  context.subscriptions.push(hoverProvider, showMenu, ...commands, outputLogger);
 }
 
 export function deactivate() {

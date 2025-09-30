@@ -19,7 +19,7 @@ export class PackageDetector {
       return undefined;
     }
 
-  const importMatch = this.extractFromImport(document, position);
+    const importMatch = this.extractFromImport(document, position);
     if (importMatch) {
       return importMatch;
     }
@@ -73,6 +73,7 @@ export class PackageDetector {
       /import\s+['"`]([^'"`]+)['"`]/g,
       /require\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
       /import\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
+      /export\s+[\s\S]*?from\s+['"`]([^'"`]+)['"`]/g,
     ];
 
     const text = document.getText();

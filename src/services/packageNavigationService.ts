@@ -86,7 +86,7 @@ export class PackageNavigationService {
       const fullPath = path.join(directory, file);
       try {
         await fs.access(fullPath);
-  this.logger.info(`Opening README for ${match.name}`, { package: match.name, path: fullPath });
+        this.logger.info(`Opening README for ${match.name}`, { package: match.name, path: fullPath });
         await vscode.window.showTextDocument(vscode.Uri.file(fullPath));
         return;
       } catch (_error) {
@@ -95,7 +95,7 @@ export class PackageNavigationService {
     }
 
     vscode.window.showWarningMessage(`README not found for ${match.name}`);
-  this.logger.warn(`README not found`, { package: match.name });
+    this.logger.warn(`README not found`, { package: match.name });
   }
 
   async openRepository(match: PackageMatch): Promise<void> {
@@ -150,7 +150,7 @@ export class PackageNavigationService {
     const normalizedVersion = this.normalizeVersionSpecifier(match.version);
     const versionSuffix = normalizedVersion ? `@${normalizedVersion}` : "";
     const url = `https://unpkg.com/${match.name}${versionSuffix}/`;
-  this.logger.info(`Opening unpkg`, { package: match.name, version: normalizedVersion });
+    this.logger.info(`Opening unpkg`, { package: match.name, version: normalizedVersion });
     await vscode.env.openExternal(vscode.Uri.parse(url));
   }
 
@@ -158,7 +158,7 @@ export class PackageNavigationService {
     const normalizedVersion = this.normalizeVersionSpecifier(match.version);
     const versionSegment = normalizedVersion ? `@${normalizedVersion}` : "";
     const url = `https://cdn.jsdelivr.net/npm/${match.name}${versionSegment}/`;
-  this.logger.info(`Opening jsDelivr`, { package: match.name, version: normalizedVersion });
+    this.logger.info(`Opening jsDelivr`, { package: match.name, version: normalizedVersion });
     await vscode.env.openExternal(vscode.Uri.parse(url));
   }
 

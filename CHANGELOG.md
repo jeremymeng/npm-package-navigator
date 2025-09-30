@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.4] - 2025-09-30
+
+### Added
+- Detect package names referenced in `export ... from` statements.
+
+### Changed
+- Removed the CodeLens provider and related source file to focus on the hover and command-based navigation experience.
+
 ## [0.1.3] - 2025-09-26
 
 ### Added

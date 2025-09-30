@@ -29,4 +29,21 @@ suite("PackageDetector", () => {
     assert.ok(match, "expected to detect package at cursor");
     assert.strictEqual(match?.name, "lodash");
   });
+
+  test("detects package name in export from statements", async () => {
+    const document = await vscode.workspace.openTextDocument({
+      language: "typescript",
+      content: `export { default as Button } from "@mui/material";\n`,
+    });
+
+    const line = document.lineAt(0).text;
+    const specifierIndex = line.indexOf("@mui/material");
+    assert.ok(specifierIndex >= 0, "specifier should exist in test document");
+
+    const position = new vscode.Position(0, specifierIndex + 2);
+    const match = detector.getPackageAtCursor(document, position);
+
+    assert.ok(match, "expected to detect package at cursor");
+    assert.strictEqual(match?.name, "@mui/material");
+  });
 });

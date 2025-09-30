@@ -13,7 +13,6 @@ Navigate to npm package resources directly from your JavaScript and TypeScript p
   - npmjs package page (latest or specific version)
   - CDN pages on [unpkg.com](https://unpkg.com) and [jsDelivr](https://www.jsdelivr.com)
 - Hover tooltips with useful metadata and quick links.
-- CodeLens entries for dependencies in `package.json`.
 - Context menu command and command palette entry for fast access.
 - Optional debug logging to the VS Code Output panel (`NPM Package Navigator`).
 
