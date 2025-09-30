@@ -15,6 +15,10 @@ export class PackageDetector {
       return this.extractFromPackageJson(document, position);
     }
 
+    if (this.isPnpmWorkspace(document)) {
+      return this.extractFromPnpmWorkspace(document, position);
+    }
+
     if (!this.isSupportedCodeDocument(document)) {
       return undefined;
     }
@@ -124,6 +128,32 @@ export class PackageDetector {
     };
   }
 
+  private extractFromPnpmWorkspace(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+  ): PackageMatch | undefined {
+    const range = document.getWordRangeAtPosition(position, /@?[\w./-]+/);
+    if (!range) {
+      return undefined;
+    }
+
+    const name = document.getText(range);
+    if (!this.isLikelyPackageName(name)) {
+      return undefined;
+    }
+
+    const packages = this.collectPnpmWorkspacePackages(document.getText());
+    if (!packages.has(name)) {
+      return undefined;
+    }
+
+    return {
+      name,
+      version: packages.get(name),
+      range,
+    };
+  }
+
   private lookupVersion(document: vscode.TextDocument, packageName: string): string | undefined {
     try {
       const json = JSON.parse(document.getText());
@@ -180,6 +210,45 @@ export class PackageDetector {
     ]);
 
     return supportedLanguages.has(document.languageId);
+  }
+
+  private isPnpmWorkspace(document: vscode.TextDocument): boolean {
+    const fileName = document.fileName.toLowerCase();
+    return fileName.endsWith("pnpm-workspace.yaml") || fileName.endsWith("pnpm-workspace.yml");
+  }
+
+  private collectPnpmWorkspacePackages(content: string): Map<string, string | undefined> {
+    const result = new Map<string, string | undefined>();
+    const lineRegex =
+      /^\s*(["']?)(@?[\w.-]+(?:\/[\w.-]+)*)\1\s*:\s*(["']?)([^'"#]+?)\3?\s*(?:#.*)?$/;
+
+    for (const rawLine of content.split(/\r?\n/)) {
+      const trimmedLine = rawLine.trim();
+      if (!trimmedLine || trimmedLine.startsWith("#")) {
+        continue;
+      }
+
+      const match = lineRegex.exec(trimmedLine);
+      if (!match) {
+        continue;
+      }
+
+      const name = match[2];
+      if (!this.isLikelyPackageName(name)) {
+        continue;
+      }
+
+      let version = match[4]?.trim() ?? "";
+      if (version.endsWith(",")) {
+        version = version.slice(0, -1).trim();
+      }
+
+      if (!result.has(name)) {
+        result.set(name, version || undefined);
+      }
+    }
+
+    return result;
   }
 
   private normalizePackageSpecifier(specifier: string): string {

@@ -17,7 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
   outputLogger.info("Extension activated");
 
   const hoverProvider = vscode.languages.registerHoverProvider(
-    ["javascript", "javascriptreact", "typescript", "typescriptreact", "json"],
+    ["javascript", "javascriptreact", "typescript", "typescriptreact", "json", "yaml"],
     new PackageHoverProvider(packageDetector, navigationService),
   );
 

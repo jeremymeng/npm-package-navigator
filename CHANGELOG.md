@@ -4,6 +4,7 @@
 
 ### Added
 - Detect package names referenced in `export ... from` statements.
+- Detect catalog/importer dependencies defined in `pnpm-workspace.yaml`.
 
 ### Changed
 - Removed the CodeLens provider and related source file to focus on the hover and command-based navigation experience.

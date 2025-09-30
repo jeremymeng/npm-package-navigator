@@ -27,7 +27,8 @@
     "onLanguage:typescript",
     "onLanguage:javascriptreact",
     "onLanguage:typescriptreact",
-    "onLanguage:json"
+    "onLanguage:json",
+    "onLanguage:yaml"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -78,7 +79,7 @@
         {
           "command": "npm-package-navigator.showPackageMenu",
           "group": "navigation@1",
-          "when": "editorTextFocus && (resourceExtname == .js || resourceExtname == .jsx || resourceExtname == .ts || resourceExtname == .tsx || resourceExtname == .mjs || resourceExtname == .cjs || resourceExtname == .json)"
+          "when": "editorTextFocus && (resourceExtname == .js || resourceExtname == .jsx || resourceExtname == .ts || resourceExtname == .tsx || resourceExtname == .mjs || resourceExtname == .cjs || resourceExtname == .json || resourceExtname == .yaml || resourceExtname == .yml)"
         }
       ]
     },

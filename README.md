@@ -4,7 +4,7 @@ Navigate to npm package resources directly from your JavaScript and TypeScript p
 
 ## Features
 
-- Detect package names in `package.json` dependencies and common import/require statements.
+- Detect package names in `package.json` dependencies, `pnpm-workspace.yaml` catalogs, and common import/export statements.
 - Quick navigation to:
   - Package directory inside `node_modules`
   - Package `package.json`
