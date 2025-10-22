@@ -177,4 +177,161 @@ suite("PackageDetector", () => {
     assert.ok(lodashMatch, "should detect lodash in dependencies");
     assert.strictEqual(lodashMatch?.name, "lodash");
   });
+
+  test("does not detect dependency section names as packages", async () => {
+    const packageJsonContent = JSON.stringify({
+      name: "test-package",
+      dependencies: {
+        "lodash": "^4.17.21"
+      },
+      devDependencies: {
+        "typescript": "^5.0.0"  
+      },
+      peerDependencies: {
+        "react": "^18.0.0"
+      },
+      optionalDependencies: {
+        "fsevents": "^2.0.0"
+      }
+    }, null, 2);
+
+    const document = await vscode.workspace.openTextDocument({
+      language: "json",
+      content: packageJsonContent,
+    });
+
+    // Test that dependency section names themselves are not detected as packages
+    const dependenciesLine = document.lineAt(2).text; // "dependencies": {
+    const depsIndex = dependenciesLine.indexOf("dependencies");
+    const depsPosition = new vscode.Position(2, depsIndex + 1);
+    const depsMatch = detector.getPackageAtCursor(document, depsPosition);
+    assert.strictEqual(depsMatch, undefined, "should not detect 'dependencies' as package name");
+
+    const devDependenciesLine = document.lineAt(5).text; // "devDependencies": {
+    const devDepsIndex = devDependenciesLine.indexOf("devDependencies");
+    const devDepsPosition = new vscode.Position(5, devDepsIndex + 1);
+    const devDepsMatch = detector.getPackageAtCursor(document, devDepsPosition);
+    assert.strictEqual(devDepsMatch, undefined, "should not detect 'devDependencies' as package name");
+
+    const peerDependenciesLine = document.lineAt(8).text; // "peerDependencies": {
+    const peerDepsIndex = peerDependenciesLine.indexOf("peerDependencies");
+    const peerDepsPosition = new vscode.Position(8, peerDepsIndex + 1);
+    const peerDepsMatch = detector.getPackageAtCursor(document, peerDepsPosition);
+    assert.strictEqual(peerDepsMatch, undefined, "should not detect 'peerDependencies' as package name");
+
+    const optionalDependenciesLine = document.lineAt(11).text; // "optionalDependencies": {
+    const optDepsIndex = optionalDependenciesLine.indexOf("optionalDependencies");
+    const optDepsPosition = new vscode.Position(11, optDepsIndex + 1);
+    const optDepsMatch = detector.getPackageAtCursor(document, optDepsPosition);
+    assert.strictEqual(optDepsMatch, undefined, "should not detect 'optionalDependencies' as package name");
+  });
+
+  test("does not detect package.json property names as packages", async () => {
+    const packageJsonContent = JSON.stringify({
+      name: "test-package",
+      version: "1.0.0",
+      description: "A test package",
+      main: "index.js",
+      scripts: {
+        test: "jest"
+      },
+      devDependencies: {
+        "@expo/ngrok": "^4.1.3",
+        "@types/react": "~19.1.0",
+        "eslint": "^9.25.0",
+        "eslint-config-expo": "~10.0.0",
+        "typescript": "~5.9.2"
+      },
+      private: true,
+      license: "MIT",
+      author: "Test Author"
+    }, null, 2);
+
+    const document = await vscode.workspace.openTextDocument({
+      language: "json",
+      content: packageJsonContent,
+    });
+
+    // Test that common package.json properties are not detected as packages
+    const privateLine = document.lineAt(15).text; // "private": true
+    const privateIndex = privateLine.indexOf("private");
+    const privatePosition = new vscode.Position(15, privateIndex + 1);
+    const privateMatch = detector.getPackageAtCursor(document, privatePosition);
+    assert.strictEqual(privateMatch, undefined, "should not detect 'private' as package name");
+
+    const nameLine = document.lineAt(1).text; // "name": "test-package"
+    const nameIndex = nameLine.indexOf("name");
+    const namePosition = new vscode.Position(1, nameIndex + 1);
+    const nameMatch = detector.getPackageAtCursor(document, namePosition);
+    assert.strictEqual(nameMatch, undefined, "should not detect 'name' as package name");
+
+    const versionLine = document.lineAt(2).text; // "version": "1.0.0"
+    const versionIndex = versionLine.indexOf("version");
+    const versionPosition = new vscode.Position(2, versionIndex + 1);
+    const versionMatch = detector.getPackageAtCursor(document, versionPosition);
+    assert.strictEqual(versionMatch, undefined, "should not detect 'version' as package name");
+
+    const licenseLine = document.lineAt(16).text; // "license": "MIT"
+    const licenseIndex = licenseLine.indexOf("license");
+    const licensePosition = new vscode.Position(16, licenseIndex + 1);
+    const licenseMatch = detector.getPackageAtCursor(document, licensePosition);
+    assert.strictEqual(licenseMatch, undefined, "should not detect 'license' as package name");
+
+    // Test that actual packages in devDependencies are still detected
+    const eslintLine = document.lineAt(11).text; // "eslint": "^9.25.0"
+    const eslintIndex = eslintLine.indexOf("eslint");
+    const eslintPosition = new vscode.Position(11, eslintIndex + 1);
+    const eslintMatch = detector.getPackageAtCursor(document, eslintPosition);
+    assert.ok(eslintMatch, "should detect eslint in devDependencies");
+    assert.strictEqual(eslintMatch?.name, "eslint");
+  });
+
+  test("handles custom package.json properties correctly", async () => {
+    const packageJsonContent = JSON.stringify({
+      name: "test-package",
+      customField: "react", // Custom property that matches a real package name
+      build: {
+        scripts: "lodash" // Nested property that matches a real package name
+      },
+      devDependencies: {
+        "react": "^18.0.0",
+        "lodash": "^4.17.21"
+      }
+    }, null, 2);
+
+    const document = await vscode.workspace.openTextDocument({
+      language: "json",
+      content: packageJsonContent,
+    });
+
+    // "react" in customField should NOT be detected as a package
+    const customFieldLine = document.lineAt(2).text; // "customField": "react"
+    const customFieldReactIndex = customFieldLine.indexOf("react");
+    const customFieldPosition = new vscode.Position(2, customFieldReactIndex + 1);
+    const customFieldMatch = detector.getPackageAtCursor(document, customFieldPosition);
+    assert.strictEqual(customFieldMatch, undefined, "should not detect 'react' in custom field");
+
+    // "lodash" in nested build.scripts should NOT be detected as a package
+    const buildScriptsLine = document.lineAt(4).text; // "scripts": "lodash"
+    const buildScriptsLodashIndex = buildScriptsLine.indexOf("lodash");
+    const buildScriptsPosition = new vscode.Position(4, buildScriptsLodashIndex + 1);
+    const buildScriptsMatch = detector.getPackageAtCursor(document, buildScriptsPosition);
+    assert.strictEqual(buildScriptsMatch, undefined, "should not detect 'lodash' in build.scripts");
+
+    // "react" in devDependencies SHOULD be detected as a package
+    const devDepReactLine = document.lineAt(7).text; // "react": "^18.0.0"
+    const devDepReactIndex = devDepReactLine.indexOf("react");
+    const devDepReactPosition = new vscode.Position(7, devDepReactIndex + 1);
+    const devDepReactMatch = detector.getPackageAtCursor(document, devDepReactPosition);
+    assert.ok(devDepReactMatch, "should detect 'react' in devDependencies");
+    assert.strictEqual(devDepReactMatch?.name, "react");
+
+    // "lodash" in devDependencies SHOULD be detected as a package
+    const devDepLodashLine = document.lineAt(8).text; // "lodash": "^4.17.21"
+    const devDepLodashIndex = devDepLodashLine.indexOf("lodash");
+    const devDepLodashPosition = new vscode.Position(8, devDepLodashIndex + 1);
+    const devDepLodashMatch = detector.getPackageAtCursor(document, devDepLodashPosition);
+    assert.ok(devDepLodashMatch, "should detect 'lodash' in devDependencies");
+    assert.strictEqual(devDepLodashMatch?.name, "lodash");
+  });
 });

@@ -126,9 +126,15 @@ export class PackageDetector {
       return undefined;
     }
 
+    // Parse the package.json and check if this position corresponds to a dependency
+    const dependencyInfo = this.findDependencyAtPosition(document, position, text);
+    if (!dependencyInfo) {
+      return undefined;
+    }
+
     return {
       name: text,
-      version: this.lookupVersion(document, text),
+      version: dependencyInfo.version,
       range,
     };
   }
@@ -307,6 +313,93 @@ export class PackageDetector {
     return /^[a-zA-Z0-9_-]+$/.test(value);
   }
 
+  private findDependencyAtPosition(
+    document: vscode.TextDocument, 
+    position: vscode.Position, 
+    packageName: string
+  ): { version: string | undefined } | undefined {
+    try {
+      const content = document.getText();
+      const parsed = JSON.parse(content);
+      
+      const dependencySections = [
+        "dependencies",
+        "devDependencies", 
+        "peerDependencies",
+        "optionalDependencies"
+      ];
+
+      // Check if the package exists in any dependency section
+      for (const section of dependencySections) {
+        const deps = parsed[section];
+        if (deps && typeof deps === "object" && packageName in deps) {
+          // Now verify that the cursor position is actually within this dependency section
+          if (this.isPositionWithinDependencySection(document, position, section, packageName)) {
+            return { version: String(deps[packageName]) };
+          }
+        }
+      }
+
+      return undefined;
+    } catch (_error) {
+      return undefined;
+    }
+  }
+
+  private isPositionWithinDependencySection(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    sectionName: string,
+    packageName: string
+  ): boolean {
+    const content = document.getText();
+    
+    // Use a more robust approach: find the section in the content string
+    // and check if the cursor position falls within that section
+    const sectionPattern = new RegExp(`"${sectionName}"\\s*:\\s*\\{`, 'g');
+    const match = sectionPattern.exec(content);
+    
+    if (!match) {
+      return false;
+    }
+    
+    const sectionStart = match.index;
+    const cursorOffset = document.offsetAt(position);
+    
+    // Find the end of this section by counting braces
+    let braceCount = 0;
+    let sectionEnd = -1;
+    let foundOpenBrace = false;
+    
+    for (let i = sectionStart; i < content.length; i++) {
+      const char = content[i];
+      if (char === '{') {
+        braceCount++;
+        foundOpenBrace = true;
+      } else if (char === '}') {
+        braceCount--;
+        if (foundOpenBrace && braceCount === 0) {
+          sectionEnd = i;
+          break;
+        }
+      }
+    }
+    
+    if (sectionEnd === -1) {
+      return false;
+    }
+    
+    // Check if cursor is within this section
+    if (cursorOffset >= sectionStart && cursorOffset <= sectionEnd) {
+      // Additionally verify that the package name exists at this position
+      const sectionContent = content.substring(sectionStart, sectionEnd + 1);
+      const packagePattern = new RegExp(`"${this.escapeRegex(packageName)}"\\s*:`);
+      return packagePattern.test(sectionContent);
+    }
+    
+    return false;
+  }
+
   private isInDependencyKeyPosition(
     document: vscode.TextDocument,
     position: vscode.Position,
@@ -330,51 +423,11 @@ export class PackageDetector {
         
         // Look for pattern: "packageName": (with optional quotes around package name)
         if (beforeName.endsWith('"') && afterName.match(/^"\s*:\s*/)) {
-          // Additional check: ensure we're within a dependency section
-          if (this.isWithinDependencySection(document, position)) {
-            return true;
-          }
-        }
-      }
-      
-      searchStart = nameIndex + 1;
-    }
-
-    return false;
-  }
-
-  private isWithinDependencySection(
-    document: vscode.TextDocument,
-    position: vscode.Position,
-  ): boolean {
-    const dependencySections = [
-      "dependencies",
-      "devDependencies", 
-      "peerDependencies",
-      "optionalDependencies"
-    ];
-
-    // Simple approach: look backwards for the nearest section header
-    for (let lineNum = position.line; lineNum >= 0; lineNum--) {
-      const lineText = document.lineAt(lineNum).text;
-      
-      // Check if this line contains a dependency section
-      for (const section of dependencySections) {
-        const sectionPattern = `"${section}"`;
-        if (lineText.includes(sectionPattern) && lineText.includes('{')) {
           return true;
         }
       }
       
-      // If we hit a closing brace at the same indentation level or higher level section,
-      // we've gone too far
-      if (lineText.trim() === '},' || lineText.trim() === '}') {
-        const currentIndent = lineText.search(/\S/);
-        const positionIndent = document.lineAt(position.line).text.search(/\S/);
-        if (currentIndent <= positionIndent - 2) { // Account for typical 2-space indentation
-          break;
-        }
-      }
+      searchStart = nameIndex + 1;
     }
 
     return false;

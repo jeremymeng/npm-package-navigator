@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6] - 2025-10-22
+
+### Fixed
+- **Major improvement**: Replaced blacklist-based package detection with JSON parsing approach that only detects packages within actual dependency sections, eliminating false positives from custom package.json properties.
+- Enhanced package detection accuracy by parsing the entire package.json structure and validating cursor positions against dependency sections.
+- Improved robustness for edge cases involving custom properties that match real package names.
+
 ## [0.1.5] - 2025-10-22
 
 ### Fixed
