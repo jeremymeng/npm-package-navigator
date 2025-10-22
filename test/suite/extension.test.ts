@@ -131,4 +131,50 @@ suite("PackageDetector", () => {
     assert.ok(packageMatch, "should detect actual package name");
     assert.strictEqual(packageMatch?.name, "@azure/dev-tool");
   });
+
+  test("does not detect package names outside dependency sections", async () => {
+    const packageJsonContent = JSON.stringify({
+      name: "test-package",
+      version: "1.0.0",
+      engines: {
+        node: ">=20.0.0"
+      },
+      scripts: {
+        test: "echo 'test'"
+      },
+      dependencies: {
+        "lodash": "^4.17.21"
+      }
+    }, null, 2);
+
+    const document = await vscode.workspace.openTextDocument({
+      language: "json",
+      content: packageJsonContent,
+    });
+
+    // Test cursor on "node" in engines section - should not detect
+    const enginesLine = document.lineAt(4).text; // "node": ">=20.0.0"
+    const nodeIndex = enginesLine.indexOf("node");
+    assert.ok(nodeIndex >= 0, "node should exist in engines section");
+    const nodePosition = new vscode.Position(4, nodeIndex + 1);
+    const nodeMatch = detector.getPackageAtCursor(document, nodePosition);
+    assert.strictEqual(nodeMatch, undefined, "should not detect node in engines as package name");
+
+    // Test cursor on "test" in scripts section - should not detect
+    const scriptsLine = document.lineAt(7).text; // "test": "echo 'test'"
+    const testIndex = scriptsLine.indexOf("test");
+    assert.ok(testIndex >= 0, "test should exist in scripts section");
+    const testPosition = new vscode.Position(7, testIndex + 1);
+    const testMatch = detector.getPackageAtCursor(document, testPosition);
+    assert.strictEqual(testMatch, undefined, "should not detect test in scripts as package name");
+
+    // Test cursor on "lodash" in dependencies section - should detect
+    const depsLine = document.lineAt(10).text; // "lodash": "^4.17.21"
+    const lodashIndex = depsLine.indexOf("lodash");
+    assert.ok(lodashIndex >= 0, "lodash should exist in dependencies section");
+    const lodashPosition = new vscode.Position(10, lodashIndex + 1);
+    const lodashMatch = detector.getPackageAtCursor(document, lodashPosition);
+    assert.ok(lodashMatch, "should detect lodash in dependencies");
+    assert.strictEqual(lodashMatch?.name, "lodash");
+  });
 });

@@ -330,11 +330,51 @@ export class PackageDetector {
         
         // Look for pattern: "packageName": (with optional quotes around package name)
         if (beforeName.endsWith('"') && afterName.match(/^"\s*:\s*/)) {
-          return true;
+          // Additional check: ensure we're within a dependency section
+          if (this.isWithinDependencySection(document, position)) {
+            return true;
+          }
         }
       }
       
       searchStart = nameIndex + 1;
+    }
+
+    return false;
+  }
+
+  private isWithinDependencySection(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+  ): boolean {
+    const dependencySections = [
+      "dependencies",
+      "devDependencies", 
+      "peerDependencies",
+      "optionalDependencies"
+    ];
+
+    // Simple approach: look backwards for the nearest section header
+    for (let lineNum = position.line; lineNum >= 0; lineNum--) {
+      const lineText = document.lineAt(lineNum).text;
+      
+      // Check if this line contains a dependency section
+      for (const section of dependencySections) {
+        const sectionPattern = `"${section}"`;
+        if (lineText.includes(sectionPattern) && lineText.includes('{')) {
+          return true;
+        }
+      }
+      
+      // If we hit a closing brace at the same indentation level or higher level section,
+      // we've gone too far
+      if (lineText.trim() === '},' || lineText.trim() === '}') {
+        const currentIndent = lineText.search(/\S/);
+        const positionIndent = document.lineAt(position.line).text.search(/\S/);
+        if (currentIndent <= positionIndent - 2) { // Account for typical 2-space indentation
+          break;
+        }
+      }
     }
 
     return false;

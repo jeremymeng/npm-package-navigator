@@ -7,6 +7,7 @@
 - Hide npm navigation options for private packages (packages with `"private": true` in package.json).
 - Fixed incorrect package name detection in workspace version specifiers (e.g., hovering over "workspace" in `"workspace:^"` no longer triggers package navigation).
 - Improved package.json detection to support test documents and untitled files with JSON content structure.
+- Fixed package name detection to only work within dependency sections, preventing false positives in other sections like "engines", "scripts", etc.
 
 ## [0.1.4] - 2025-09-30
 
