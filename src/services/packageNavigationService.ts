@@ -83,12 +83,27 @@ export class PackageNavigationService {
       return;
     }
 
-    const candidates = ["README.md", "readme.md", "README", "readme", "README.txt", "readme.txt"];
+    const candidates = [
+      "README.md", 
+      "readme.md", 
+      "README.markdown", 
+      "readme.markdown",
+      "README.mdown",
+      "readme.mdown",
+      "README.mkd",
+      "readme.mkd",
+      "README", 
+      "readme", 
+      "README.txt", 
+      "readme.txt",
+      "README.rst",
+      "readme.rst"
+    ];
     for (const file of candidates) {
       const fullPath = path.join(directory, file);
       try {
+        this.logger.info(`Trying to open README for ${match.name}`, { package: match.name, path: fullPath });
         await fs.access(fullPath);
-        this.logger.info(`Opening README for ${match.name}`, { package: match.name, path: fullPath });
         await vscode.window.showTextDocument(vscode.Uri.file(fullPath));
         return;
       } catch (_error) {

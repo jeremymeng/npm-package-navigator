@@ -7,6 +7,9 @@
 - Enhanced package detection accuracy by parsing the entire package.json structure and validating cursor positions against dependency sections.
 - Improved robustness for edge cases involving custom properties that match real package names.
 
+### Enhanced
+- Expanded README file detection to support additional common formats: `README.markdown`, `README.mdown`, `README.mkd`, and `README.rst` (with both uppercase and lowercase variants).
+
 ## [0.1.5] - 2025-10-22
 
 ### Fixed
