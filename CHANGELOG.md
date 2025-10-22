@@ -4,6 +4,7 @@
 
 ### Fixed
 - Display package version as "v1.2.3" instead of "@1.2.3" in hover tooltips to prevent mailto link rendering.
+- Hide npm navigation options for private packages (packages with `"private": true` in package.json).
 
 ## [0.1.4] - 2025-09-30
 

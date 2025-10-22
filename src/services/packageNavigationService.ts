@@ -14,6 +14,7 @@ export interface PackageInfo {
   homepage?: string;
   repository?: string;
   bugs?: string;
+  private?: boolean;
 }
 
 export class PackageNavigationService {
@@ -37,6 +38,7 @@ export class PackageNavigationService {
         homepage: data.homepage,
         repository: this.normalizeRepository(data.repository),
         bugs: this.normalizeBugs(data.bugs),
+        private: data.private,
       };
     } catch (error) {
       this.logger.error(`Failed to parse package.json for ${packageName}`, error);
@@ -139,6 +141,13 @@ export class PackageNavigationService {
   }
 
   async openNpm(match: PackageMatch): Promise<void> {
+    const info = await this.getPackageInfo(match.name);
+    if (info?.private) {
+      vscode.window.showErrorMessage(`Package ${match.name} is private and not published to npm`);
+      this.logger.warn(`Attempted to open npm page for private package`, { package: match.name });
+      return;
+    }
+
     const normalizedVersion = this.normalizeVersionSpecifier(match.version);
     const baseUrl = `https://www.npmjs.com/package/${match.name}`;
     const url = normalizedVersion ? `${baseUrl}/v/${normalizedVersion}` : baseUrl;

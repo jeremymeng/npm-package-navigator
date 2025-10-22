@@ -147,16 +147,18 @@ async function showPackageNavigationMenu(match: PackageMatch): Promise<void> {
     });
   }
 
-  quickPickItems.push({
-    label: "$(link-external) npm (latest)",
-    description: `Open https://www.npmjs.com/package/${match.name}`,
-  });
-
-  if (version) {
+  if (!packageInfo?.private) {
     quickPickItems.push({
-      label: "$(link-external) npm (version)",
-      description: `Open https://www.npmjs.com/package/${match.name}/v/${version}`,
+      label: "$(link-external) npm (latest)",
+      description: `Open https://www.npmjs.com/package/${match.name}`,
     });
+
+    if (version) {
+      quickPickItems.push({
+        label: "$(link-external) npm (version)",
+        description: `Open https://www.npmjs.com/package/${match.name}/v/${version}`,
+      });
+    }
   }
 
   quickPickItems.push({

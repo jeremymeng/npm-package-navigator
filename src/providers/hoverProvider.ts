@@ -24,9 +24,9 @@ export class PackageHoverProvider implements vscode.HoverProvider {
     markdown.supportHtml = true;
 
     const npmUrl = `https://www.npmjs.com/package/${match.name}`;
-    markdown.appendMarkdown(
-      `**${match.name}${info?.version ? ` v${info.version}` : ""}** ([npmjs](${npmUrl}))\n\n`,
-    );
+    const packageTitle = `**${match.name}${info?.version ? ` v${info.version}` : ""}**`;
+    const npmLink = info?.private ? "" : ` ([npmjs](${npmUrl}))`;
+    markdown.appendMarkdown(`${packageTitle}${npmLink}\n\n`);
 
     if (info?.description) {
       markdown.appendMarkdown(`${info.description}\n\n`);
