@@ -121,6 +121,11 @@ export class PackageDetector {
       return undefined;
     }
 
+    // Check if we're in a dependency key position, not a version value
+    if (!this.isInDependencyKeyPosition(document, position, text)) {
+      return undefined;
+    }
+
     return {
       name: text,
       version: this.lookupVersion(document, text),
@@ -198,7 +203,28 @@ export class PackageDetector {
   }
 
   private isPackageJson(document: vscode.TextDocument): boolean {
-    return document.fileName.endsWith("package.json");
+    // Check filename first
+    if (document.fileName.endsWith("package.json")) {
+      return true;
+    }
+    
+    // For untitled documents or tests, check if it's JSON with dependencies structure
+    if (document.languageId === "json") {
+      const content = document.getText();
+      try {
+        const parsed = JSON.parse(content);
+        // Check if it has typical package.json structure
+        return (
+          parsed &&
+          typeof parsed === "object" &&
+          (parsed.dependencies || parsed.devDependencies || parsed.peerDependencies || parsed.optionalDependencies)
+        );
+      } catch {
+        return false;
+      }
+    }
+    
+    return false;
   }
 
   private isSupportedCodeDocument(document: vscode.TextDocument): boolean {
@@ -279,5 +305,42 @@ export class PackageDetector {
     }
 
     return /^[a-zA-Z0-9_-]+$/.test(value);
+  }
+
+  private isInDependencyKeyPosition(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    packageName: string,
+  ): boolean {
+    const line = document.lineAt(position.line);
+    const lineText = line.text;
+    const cursorChar = position.character;
+
+    // Find all occurrences of the package name in the line
+    let searchStart = 0;
+    while (searchStart < lineText.length) {
+      const nameIndex = lineText.indexOf(packageName, searchStart);
+      if (nameIndex === -1) break;
+
+      // Check if cursor is within this occurrence
+      if (cursorChar >= nameIndex && cursorChar <= nameIndex + packageName.length) {
+        // Check if this occurrence is in a key position (before a colon)
+        const beforeName = lineText.substring(0, nameIndex);
+        const afterName = lineText.substring(nameIndex + packageName.length);
+        
+        // Look for pattern: "packageName": (with optional quotes around package name)
+        if (beforeName.endsWith('"') && afterName.match(/^"\s*:\s*/)) {
+          return true;
+        }
+      }
+      
+      searchStart = nameIndex + 1;
+    }
+
+    return false;
+  }
+
+  private escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 }

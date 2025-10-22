@@ -100,4 +100,35 @@ suite("PackageDetector", () => {
       await fs.rm(tempDir, { recursive: true, force: true });
     }
   });
+
+  test("does not detect workspace in package.json version specifier", async () => {
+    const packageJsonContent = JSON.stringify({
+      dependencies: {
+        "@azure/dev-tool": "workspace:^",
+        "lodash": "^4.17.21"
+      }
+    }, null, 2);
+
+    const document = await vscode.workspace.openTextDocument({
+      language: "json",
+      content: packageJsonContent,
+    });
+
+    // Test cursor on "workspace" in the version specifier - should not detect
+    const workspaceLine = document.lineAt(2).text; // "@azure/dev-tool": "workspace:^",
+    const workspaceIndex = workspaceLine.indexOf("workspace");
+    assert.ok(workspaceIndex >= 0, "workspace should exist in test document");
+    const workspacePosition = new vscode.Position(2, workspaceIndex + 1);
+    const workspaceMatch = detector.getPackageAtCursor(document, workspacePosition);
+    assert.strictEqual(workspaceMatch, undefined, "should not detect workspace as package name");
+
+    // Test cursor on actual package name - should detect
+    const packageIndex = workspaceLine.indexOf("@azure/dev-tool");
+    assert.ok(packageIndex >= 0, "@azure/dev-tool should exist in test document");
+    // Position cursor within the package name, after the @ symbol
+    const packagePosition = new vscode.Position(2, packageIndex + 1);
+    const packageMatch = detector.getPackageAtCursor(document, packagePosition);
+    assert.ok(packageMatch, "should detect actual package name");
+    assert.strictEqual(packageMatch?.name, "@azure/dev-tool");
+  });
 });
