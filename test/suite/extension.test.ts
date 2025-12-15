@@ -33,6 +33,25 @@ suite("PackageDetector", () => {
     assert.strictEqual(match?.name, "lodash");
   });
 
+  test("detects package name with single quotes", async () => {
+    const document = await vscode.workspace.openTextDocument({
+      language: "typescript",
+      content: `import unixify from 'unixify';\n`,
+    });
+
+    const line = document.lineAt(0).text;
+    const specifierIndex = line.indexOf("unixify");
+    // Find the second occurrence (the one in quotes, not the variable name)
+    const secondIndex = line.indexOf("unixify", specifierIndex + 1);
+    assert.ok(secondIndex >= 0, "specifier should exist in test document");
+
+    const position = new vscode.Position(0, secondIndex + 1);
+    const match = detector.getPackageAtCursor(document, position);
+
+    assert.ok(match, "expected to detect package at cursor with single quotes");
+    assert.strictEqual(match?.name, "unixify");
+  });
+
   test("detects package name in export from statements", async () => {
     const document = await vscode.workspace.openTextDocument({
       language: "typescript",
@@ -333,5 +352,63 @@ suite("PackageDetector", () => {
     const devDepLodashMatch = detector.getPackageAtCursor(document, devDepLodashPosition);
     assert.ok(devDepLodashMatch, "should detect 'lodash' in devDependencies");
     assert.strictEqual(devDepLodashMatch?.name, "lodash");
+  });
+
+  test("does not detect Node.js built-in modules", async () => {
+    // Test prefixed node: imports
+    const prefixedCode = `import fs from "node:fs";
+import path from "node:path";
+import { createServer } from "node:http";`;
+
+    const prefixedDoc = await vscode.workspace.openTextDocument({
+      language: "typescript",
+      content: prefixedCode,
+    });
+
+    // "node:fs" should not be detected
+    const nodeFsLine = prefixedDoc.lineAt(0).text;
+    const nodeFsIndex = nodeFsLine.indexOf("node:fs");
+    const nodeFsPosition = new vscode.Position(0, nodeFsIndex + 1);
+    const nodeFsMatch = detector.getPackageAtCursor(prefixedDoc, nodeFsPosition);
+    assert.strictEqual(nodeFsMatch, undefined, "should not detect 'node:fs' as package");
+
+    // "node:http" should not be detected
+    const nodeHttpLine = prefixedDoc.lineAt(2).text;
+    const nodeHttpIndex = nodeHttpLine.indexOf("node:http");
+    const nodeHttpPosition = new vscode.Position(2, nodeHttpIndex + 1);
+    const nodeHttpMatch = detector.getPackageAtCursor(prefixedDoc, nodeHttpPosition);
+    assert.strictEqual(nodeHttpMatch, undefined, "should not detect 'node:http' as package");
+
+    // Test non-prefixed built-in imports
+    const nonPrefixedCode = `import fs from "fs";
+import path from "path";
+import { createServer } from "http";
+import { promisify } from "util";`;
+
+    const nonPrefixedDoc = await vscode.workspace.openTextDocument({
+      language: "typescript",
+      content: nonPrefixedCode,
+    });
+
+    // "fs" should not be detected
+    const fsLine = nonPrefixedDoc.lineAt(0).text;
+    const fsIndex = fsLine.indexOf('"fs"');
+    const fsPosition = new vscode.Position(0, fsIndex + 2);
+    const fsMatch = detector.getPackageAtCursor(nonPrefixedDoc, fsPosition);
+    assert.strictEqual(fsMatch, undefined, "should not detect 'fs' as package");
+
+    // "http" should not be detected
+    const httpLine = nonPrefixedDoc.lineAt(2).text;
+    const httpIndex = httpLine.indexOf('"http"');
+    const httpPosition = new vscode.Position(2, httpIndex + 2);
+    const httpMatch = detector.getPackageAtCursor(nonPrefixedDoc, httpPosition);
+    assert.strictEqual(httpMatch, undefined, "should not detect 'http' as package");
+
+    // "util" should not be detected
+    const utilLine = nonPrefixedDoc.lineAt(3).text;
+    const utilIndex = utilLine.indexOf('"util"');
+    const utilPosition = new vscode.Position(3, utilIndex + 2);
+    const utilMatch = detector.getPackageAtCursor(nonPrefixedDoc, utilPosition);
+    assert.strictEqual(utilMatch, undefined, "should not detect 'util' as package");
   });
 });

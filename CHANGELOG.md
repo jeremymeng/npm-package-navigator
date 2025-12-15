@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.7] - 2025-12-15
+
+### Added
+- **Monorepo support**: Package resolution now uses Node.js-style module resolution, walking up from the active document's directory to find the closest `node_modules`. This enables proper package navigation in monorepos and multi-package workspaces.
+- Added `documentUri` to `PackageMatch` interface to track where package references are found.
+
+### Fixed
+- Ignore Node.js built-in modules (e.g., `fs`, `path`, `http`, `node:fs`) to prevent unnecessary package navigation prompts for core modules.
+- Fixed import detection when the variable name matches the module name (e.g., `import unixify from 'unixify'`). Previously, the cursor position was incorrectly calculated using the first occurrence of the name instead of the module specifier in quotes.
+
 ## [0.1.6] - 2025-10-22
 
 ### Fixed

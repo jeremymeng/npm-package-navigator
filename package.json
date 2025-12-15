@@ -2,7 +2,7 @@
   "name": "npm-package-navigator",
   "displayName": "NPM Package Navigator",
   "description": "Navigate quickly to npm package resources directly from JavaScript and TypeScript projects.",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "publisher": "jymeng",
   "license": "MIT",
   "repository": {

@@ -1,9 +1,11 @@
 import * as vscode from "vscode";
+import { builtinModules } from "module";
 
 export interface PackageMatch {
   name: string;
   version?: string;
   range?: vscode.Range;
+  documentUri?: vscode.Uri;
 }
 
 export class PackageDetector {
@@ -88,7 +90,11 @@ export class PackageDetector {
       let match: RegExpExecArray | null;
       while ((match = regex.exec(text)) !== null) {
         const specifier = match[1];
-        const specifierStart = match.index + match[0].indexOf(specifier);
+        // Use lastIndexOf to find the specifier in the module path (inside quotes),
+        // not in the variable name position. For example, in:
+        // "import unixify from 'unixify'"
+        // indexOf would return 7 (variable), lastIndexOf returns 21 (module specifier)
+        const specifierStart = match.index + match[0].lastIndexOf(specifier);
         const specifierEnd = specifierStart + specifier.length;
 
         if (cursorOffset >= specifierStart && cursorOffset <= specifierEnd) {
@@ -98,7 +104,7 @@ export class PackageDetector {
               document.positionAt(specifierStart),
               document.positionAt(specifierEnd),
             );
-            return { name: normalized, range };
+            return { name: normalized, range, documentUri: document.uri };
           }
         }
       }
@@ -136,6 +142,7 @@ export class PackageDetector {
       name: text,
       version: dependencyInfo.version,
       range,
+      documentUri: document.uri,
     };
   }
 
@@ -162,6 +169,7 @@ export class PackageDetector {
       name,
       version: packages.get(name),
       range,
+      documentUri: document.uri,
     };
   }
 
@@ -284,6 +292,11 @@ export class PackageDetector {
   }
 
   private normalizePackageSpecifier(specifier: string): string {
+    // Ignore Node.js built-in modules
+    if (this.isNodeBuiltin(specifier)) {
+      return "";
+    }
+
     if (specifier.startsWith(".") || specifier.startsWith("/")) {
       return "";
     }
@@ -295,6 +308,23 @@ export class PackageDetector {
 
     const parts = specifier.split("/");
     return parts[0];
+  }
+
+  /**
+   * Check if a module specifier refers to a Node.js built-in module.
+   * Handles both prefixed (node:fs) and non-prefixed (fs) forms.
+   */
+  private isNodeBuiltin(specifier: string): boolean {
+    // Handle node: prefixed imports (e.g., node:fs, node:path)
+    if (specifier.startsWith("node:")) {
+      return true;
+    }
+
+    // Extract the base module name (handle subpaths like fs/promises)
+    const baseName = specifier.split("/")[0];
+
+    // Check against Node.js built-in modules list
+    return builtinModules.includes(baseName);
   }
 
   private isLikelyPackageName(value: string): boolean {
