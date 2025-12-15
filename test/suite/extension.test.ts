@@ -52,6 +52,23 @@ suite("PackageDetector", () => {
     assert.strictEqual(match?.name, "unixify");
   });
 
+  test("detects package from side-effect import with subpath", async () => {
+    const document = await vscode.workspace.openTextDocument({
+      language: "typescript",
+      content: `import "dotenv/config";\n`,
+    });
+
+    const line = document.lineAt(0).text;
+    const dotenvIndex = line.indexOf("dotenv");
+    assert.ok(dotenvIndex >= 0, "dotenv should exist in test document");
+
+    const position = new vscode.Position(0, dotenvIndex + 1);
+    const match = detector.getPackageAtCursor(document, position);
+
+    assert.ok(match, "expected to detect package from side-effect import");
+    assert.strictEqual(match?.name, "dotenv");
+  });
+
   test("detects package name in export from statements", async () => {
     const document = await vscode.workspace.openTextDocument({
       language: "typescript",
